@@ -66,7 +66,7 @@ def prepare(neg=1, k=5, train_file_list = None, valid_file_list = None):
             examples['class_text'],
             truncation=True,
             padding=False,
-            max_length=256,
+            max_length=512,
             return_token_type_ids=False
         )
         encoding['labels'] = examples['label']
