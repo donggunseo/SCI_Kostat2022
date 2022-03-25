@@ -22,7 +22,7 @@ def train(neg=1, kfold = 5):
     for fold in range(kfold):
         valid_datasets = kfold_tokenized_valid_dataset[fold]
         valid_gt = list(valid_datasets['class_num'])
-        valid_gt = [valid_gt[i] for i in range(0, len(valid_gt), neg+1)]
+        valid_gt = [valid_gt[i] for i in range(0, len(valid_gt), 10)]
         train_datasets = concatenate_datasets([kfold_tokenized_train_dataset[i].flatten_indices() for i in range(kfold) if i!=fold])
         config = AutoConfig.from_pretrained('klue/roberta-large')
         config.num_labels = 2
