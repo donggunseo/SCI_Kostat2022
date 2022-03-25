@@ -12,8 +12,8 @@ from sklearn.metrics import accuracy_score, f1_score
 def train(neg=1, kfold = 5):
     os.environ["TOKENIZERS_PARALLELISM"] = "false"
     train_file_list = [f'../neg{neg}_csv_{kfold}fold/train_neg{neg}_fold{i}.csv' for i in range(kfold)]
-    valid_file_list = [f'../validation_csv_{kfold}fold/validation_fold{i}.csv' for i in range(kfold)]
-    kfold_tokenized_train_dataset, kfold_tokenized_valid_dataset, tokenizer, N_LABELS = prepare(
+    valid_file_list = [f'../neg{neg}_csv_{kfold}fold/train_neg9_fold{i}.csv' for i in range(kfold)]
+    kfold_tokenized_train_dataset, kfold_tokenized_valid_dataset, tokenizer = prepare(
         neg = neg, 
         k = kfold, 
         train_file_list = train_file_list, 

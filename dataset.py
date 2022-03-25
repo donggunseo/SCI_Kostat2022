@@ -9,13 +9,10 @@ from utils import seed_everything
 import os
 
 def generate_random_neg_index(neg, total_len, row_class_num):
-    if neg == total_len-1:
-        num_label = [i for i in range(total_len)]
-    else:
-        r = [i for i in range(total_len) if i!=row_class_num]
-        num_label = random.sample(r, neg)
-        num_label.append(row_class_num)
-        num_label.sort()
+    r = [i for i in range(total_len) if i!=row_class_num]
+    num_label = random.sample(r, neg)
+    num_label.append(row_class_num)
+    num_label.sort()
     return num_label
 
 def prepare_negsample_df(query_df=None, class_df=None, neg=1, kfold=5, file_list = None):
@@ -28,12 +25,8 @@ def prepare_negsample_df(query_df=None, class_df=None, neg=1, kfold=5, file_list
         return fold_df_list
     else:
         total_len = len(class_df)
-        if neg==total_len-1:
-            dir_name = f'../validation_csv_{kfold}fold'
-            os.makedirs(dir_name, exist_ok=True)
-        else: 
-            dir_name = f'../neg{neg}_csv_{kfold}fold'
-            os.makedirs(dir_name, exist_ok=True)
+        dir_name = f'../neg{neg}_csv_{kfold}fold'
+        os.makedirs(dir_name, exist_ok=True)
         for i in range(kfold):
             df = query_df[query_df['kfold']==i].reset_index(drop=True)
             id_list = []
@@ -57,19 +50,15 @@ def prepare_negsample_df(query_df=None, class_df=None, neg=1, kfold=5, file_list
                     else:
                         label_list.append(0)
             new_df = pd.DataFrame({'AI_id' : id_list, 'query_text' : text_list, 'class_num' : class_num_list, 'kfold' : kfold_list, 'class_text' : class_text_list, 'label' : label_list})
-            if neg==total_len-1:
-                new_df.to_csv(f'{dir_name}/validation_fold{i}.csv')
-            else:
-                new_df.to_csv(f'{dir_name}/train_neg{neg}_fold{i}.csv')
+            new_df.to_csv(f'{dir_name}/train_neg{neg}_fold{i}.csv')
             fold_df_list.append(new_df)
         return fold_df_list
 
 def prepare(neg=1, k=5, train_file_list = None, valid_file_list = None):
     query_df, class_df = combine()
     query_df = create_kfold(query_df, k=k)
-    N_LABELS = len(class_df)
     train_fold_df_list = prepare_negsample_df(query_df, class_df, neg = neg, kfold = k, file_list = train_file_list)
-    valid_fold_df_list = prepare_negsample_df(query_df, class_df, neg = N_LABELS-1, kfold = k, file_list = valid_file_list)
+    valid_fold_df_list = prepare_negsample_df(query_df, class_df, neg = 9, kfold = k, file_list = valid_file_list)
     tokenizer = AutoTokenizer.from_pretrained('klue/roberta-large')
     def train_mapping(examples):
         encoding = tokenizer(
@@ -102,7 +91,7 @@ def prepare(neg=1, k=5, train_file_list = None, valid_file_list = None):
         tokenized_valid_dataset = valid_datasets.map(valid_mapping, batched=True, batch_size=10000, remove_columns=valid_datasets.column_names)
         kfold_tokenized_train_dataset.append(tokenized_train_dataset)
         kfold_tokenized_valid_dataset.append(tokenized_valid_dataset)
-    return kfold_tokenized_train_dataset, kfold_tokenized_valid_dataset, tokenizer, N_LABELS
+    return kfold_tokenized_train_dataset, kfold_tokenized_valid_dataset, tokenizer
 
 def prepare_inference(test_file= None, model_checkpoint = None):
     query_df, class_df = combine(type='test')
