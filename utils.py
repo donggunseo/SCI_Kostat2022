@@ -20,4 +20,4 @@ def post_processing(predictions):
     pred_score = pred_score.numpy()
     pred_score = pred_score[:,:,1]
     preds = np.argmax(pred_score, axis=-1)
-    return
+    return preds
