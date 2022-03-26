@@ -55,9 +55,9 @@ def prepare_negsample_df(query_df=None, class_df=None, neg=1, kfold=5, file_list
         return fold_df_list
 
 def prepare(neg=1, k=5, train_file_list = None, valid_file_list = None, hf_train_dataset_list = None, hf_valid_dataset_list = None):
-    kfold_tokenized_train_dataset = []
-    kfold_tokenized_valid_dataset = []
     if hf_train_dataset_list!=None and hf_valid_dataset_list!=None and len([f for f in hf_train_dataset_list if os.path.isdir(f)])==len(hf_train_dataset_list) and len([f for f in hf_valid_dataset_list if os.path.isdir(f)])==len(hf_valid_dataset_list):
+        kfold_tokenized_train_dataset = []
+        kfold_tokenized_valid_dataset = []
         tokenizer = AutoTokenizer.from_pretrained('klue/roberta-large')
         for fold in range(k):
             tokenized_train_dataset = load_from_disk(hf_train_dataset_list[fold])
