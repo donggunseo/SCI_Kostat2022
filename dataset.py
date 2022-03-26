@@ -101,8 +101,8 @@ def prepare(neg=1, k=5, train_file_list = None, valid_file_list = None, hf_train
         tokenized_valid_dataset = valid_datasets.map(valid_mapping, batched=True, batch_size=10000, remove_columns=valid_datasets.column_names)
         tokenized_train_dataset.flatten_indices()
         tokenized_valid_dataset.flatten_indices()
-        tokenized_train_dataset.save_to_disk(f'../train_dataset/train_dataset_neg{neg}_fold{k}')
-        tokenized_valid_dataset.save_to_disk(f'../valid_dataset/valid_dataset_neg9_fold{k}')
+        tokenized_train_dataset.save_to_disk(f'../train_dataset/train_dataset_neg{neg}_fold{fold}')
+        tokenized_valid_dataset.save_to_disk(f'../valid_dataset/valid_dataset_neg9_fold{fold}')
         kfold_tokenized_train_dataset.append(tokenized_train_dataset)
         kfold_tokenized_valid_dataset.append(tokenized_valid_dataset)
     return kfold_tokenized_train_dataset, kfold_tokenized_valid_dataset, tokenizer
