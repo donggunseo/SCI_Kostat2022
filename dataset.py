@@ -15,7 +15,7 @@ def generate_random_neg_index(neg, total_len, row_class_num):
     num_label.sort()
     return num_label
 
-def prepare_negsample_df(query_df=None, class_df=None, neg=1, kfold=5, file_list = None):
+def prepare_negsample_df(neg=1, kfold=5, file_list = None):
     fold_df_list=[]
     if file_list!=None and len([f for f in file_list if os.path.isfile(f)])==len(file_list): 
         for file in tqdm(file_list, desc='reading csv from disk'):
@@ -27,6 +27,8 @@ def prepare_negsample_df(query_df=None, class_df=None, neg=1, kfold=5, file_list
         total_len = len(class_df)
         dir_name = f'../neg{neg}_csv_{kfold}fold'
         os.makedirs(dir_name, exist_ok=True)
+        query_df, class_df = combine()
+        query_df = create_kfold(query_df, k=kfold)
         for i in range(kfold):
             df = query_df[query_df['kfold']==i].reset_index(drop=True)
             id_list = []
@@ -65,10 +67,8 @@ def prepare(neg=1, k=5, train_file_list = None, valid_file_list = None, hf_train
             kfold_tokenized_train_dataset.append(tokenized_train_dataset)
             kfold_tokenized_valid_dataset.append(tokenized_valid_dataset)
         return kfold_tokenized_train_dataset, kfold_tokenized_valid_dataset, tokenizer
-    query_df, class_df = combine()
-    query_df = create_kfold(query_df, k=k)
-    train_fold_df_list = prepare_negsample_df(query_df, class_df, neg = neg, kfold = k, file_list = train_file_list)
-    valid_fold_df_list = prepare_negsample_df(query_df, class_df, neg = 9, kfold = k, file_list = valid_file_list)
+    train_fold_df_list = prepare_negsample_df(neg = neg, kfold = k, file_list = train_file_list)
+    valid_fold_df_list = prepare_negsample_df(neg = 9, kfold = k, file_list = valid_file_list)
     tokenizer = AutoTokenizer.from_pretrained('klue/roberta-large')
     def train_mapping(examples):
         encoding = tokenizer(
