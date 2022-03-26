@@ -1,7 +1,7 @@
 from preprocess import combine
 from create_kfold import create_kfold
 import pandas as pd
-from datasets import Dataset
+from datasets import Dataset, load_from_disk
 from transformers import AutoTokenizer
 from tqdm import tqdm
 import random
@@ -54,7 +54,17 @@ def prepare_negsample_df(query_df=None, class_df=None, neg=1, kfold=5, file_list
             fold_df_list.append(new_df)
         return fold_df_list
 
-def prepare(neg=1, k=5, train_file_list = None, valid_file_list = None):
+def prepare(neg=1, k=5, train_file_list = None, valid_file_list = None, hf_train_dataset_list = None, hf_valid_dataset_list = None):
+    kfold_tokenized_train_dataset = []
+    kfold_tokenized_valid_dataset = []
+    if hf_train_dataset_list!=None and hf_valid_dataset_list!=None and len([f for f in hf_train_dataset_list if os.path.isdir(f)])==len(hf_train_dataset_list) and len([f for f in hf_valid_dataset_list if os.path.isdir(f)])==len(hf_valid_dataset_list):
+        tokenizer = AutoTokenizer.from_pretrained('klue/roberta-large')
+        for fold in range(k):
+            tokenized_train_dataset = load_from_disk(hf_train_dataset_list[fold])
+            tokenized_valid_dataset = load_from_disk(hf_valid_dataset_list[fold])
+            kfold_tokenized_train_dataset.append(tokenized_train_dataset)
+            kfold_tokenized_valid_dataset.append(tokenized_valid_dataset)
+        return kfold_tokenized_train_dataset, kfold_tokenized_valid_dataset, tokenizer
     query_df, class_df = combine()
     query_df = create_kfold(query_df, k=k)
     train_fold_df_list = prepare_negsample_df(query_df, class_df, neg = neg, kfold = k, file_list = train_file_list)
@@ -89,6 +99,10 @@ def prepare(neg=1, k=5, train_file_list = None, valid_file_list = None):
         valid_datasets = Dataset.from_pandas(valid_fold_df_list[fold])
         tokenized_train_dataset = train_datasets.map(train_mapping, batched=True, batch_size=10000, remove_columns=train_datasets.column_names)
         tokenized_valid_dataset = valid_datasets.map(valid_mapping, batched=True, batch_size=10000, remove_columns=valid_datasets.column_names)
+        tokenized_train_dataset.flatten_indices()
+        tokenized_valid_dataset.flatten_indices()
+        tokenized_train_dataset.save_to_disk(f'../train_dataset/train_dataset_neg{neg}_fold{k}')
+        tokenized_valid_dataset.save_to_disk(f'../valid_dataset/valid_dataset_neg9_fold{k}')
         kfold_tokenized_train_dataset.append(tokenized_train_dataset)
         kfold_tokenized_valid_dataset.append(tokenized_valid_dataset)
     return kfold_tokenized_train_dataset, kfold_tokenized_valid_dataset, tokenizer

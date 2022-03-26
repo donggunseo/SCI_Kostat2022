@@ -13,25 +13,29 @@ def train(neg=1, kfold = 5):
     os.environ["TOKENIZERS_PARALLELISM"] = "false"
     train_file_list = [f'../neg{neg}_csv_{kfold}fold/train_neg{neg}_fold{i}.csv' for i in range(kfold)]
     valid_file_list = [f'../neg{neg}_csv_{kfold}fold/train_neg9_fold{i}.csv' for i in range(kfold)]
+    hf_train_dataset_list = [f'../train_dataset/train_dataset_neg{neg}_fold{i}' for i in range(kfold)]
+    hf_valid_dataset_list = [f'../valid_dataset/valid_dataset_neg9_fold{i}' for i in range(kfold)]
     kfold_tokenized_train_dataset, kfold_tokenized_valid_dataset, tokenizer = prepare(
         neg = neg, 
         k = kfold, 
         train_file_list = train_file_list, 
-        valid_file_list = valid_file_list
-        )
+        valid_file_list = valid_file_list,
+        hf_train_dataset_list=hf_train_dataset_list,
+        hf_valid_dataset_list=hf_valid_dataset_list
+    )
     for fold in range(kfold):
         valid_datasets = kfold_tokenized_valid_dataset[fold]
         valid_gt = list(valid_datasets['class_num'])
         valid_gt = [valid_gt[i] for i in range(0, len(valid_gt), 10)]
-        train_datasets = concatenate_datasets([kfold_tokenized_train_dataset[i].flatten_indices() for i in range(kfold) if i!=fold])
+        train_datasets = concatenate_datasets([kfold_tokenized_train_dataset[i] for i in range(kfold) if i!=fold])
         config = AutoConfig.from_pretrained('klue/roberta-large')
         config.num_labels = 2
         model = AutoModelForSequenceClassification.from_pretrained('klue/roberta-large', config = config)
         training_args = TrainingArguments(
             output_dir = f'../output/roberta_large_neg{neg}_fold{fold}',
             evaluation_strategy = 'epoch',
-            per_device_train_batch_size = 32,
-            per_device_eval_batch_size = 32,
+            per_device_train_batch_size = 128,
+            per_device_eval_batch_size = 128,
             gradient_accumulation_steps = 1,
             learning_rate = 1e-5,
             weight_decay = 0.01,
