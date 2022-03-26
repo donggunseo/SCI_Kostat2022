@@ -7,7 +7,7 @@ class CustomTrainer(Trainer):
         self.post_process_function = post_process_function
         self.eval_gt = eval_gt
         
-    def evaluate(self, eval_dataset=None, ignore_keys=None):
+    def evaluate(self, eval_dataset=None, eval_gt=None, ignore_keys=None):
         eval_dataset = self.eval_dataset if eval_dataset is None else eval_dataset
         eval_gt = self.eval_gt  if eval_gt is None else eval_gt
         eval_dataloader = self.get_eval_dataloader(eval_dataset)

@@ -55,9 +55,9 @@ def inference(model_checkpoint):
     second = []
     third = []
     for pred in preds:
-        a = class_df[class_df['class_num']==pred]['1st'][0]
-        b = class_df[class_df['class_num']==pred]['2nd'][0]
-        c = class_df[class_df['class_num']==pred]['3rd'][0]
+        a = list(class_df[class_df['class_num']==pred]['1st'])[0]
+        b = list(class_df[class_df['class_num']==pred]['2nd'])[0]
+        c = list(class_df[class_df['class_num']==pred]['3rd'])[0]
         first.append(a)
         second.append(b)
         third.append(c)
@@ -65,7 +65,7 @@ def inference(model_checkpoint):
     submission['digit_2'] = second
     submission['digit_3'] = third
     os.makedirs('../submission', exist_ok=True)
-    submission.to_csv(f'../submission/{model_checkpoint[0][:-6]}_submission.csv')
+    submission.to_csv(f'../submission/submission_neg1.csv')
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
