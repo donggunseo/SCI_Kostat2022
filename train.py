@@ -34,15 +34,15 @@ def train(neg=1, kfold = 5):
         training_args = TrainingArguments(
             output_dir = f'../output/roberta_large_neg{neg}_fold{fold}',
             evaluation_strategy = 'epoch',
-            per_device_train_batch_size = 64,
-            per_device_eval_batch_size = 64,
+            per_device_train_batch_size = 48,
+            per_device_eval_batch_size = 48,
             gradient_accumulation_steps = 1,
             learning_rate = 1e-5,
             weight_decay = 0.01,
             num_train_epochs = 5,
             warmup_ratio = 0.06,
             logging_strategy = 'steps',
-            logging_dir = '../log/roberta_large_neg{neg}_fold{fold}',
+            logging_dir = f'../log/roberta_large_neg{neg}_fold{fold}',
             logging_steps = 50,
             save_strategy = 'epoch',
             save_total_limit = 1,
@@ -70,11 +70,11 @@ def train(neg=1, kfold = 5):
             post_process_function = post_processing,
             compute_metrics=compute_metrics
         )
-        run = wandb.init(project='kostat', entity='donggunseo', name='roberta_large_neg{neg}_fold{fold}')
+        run = wandb.init(project='kostat', entity='donggunseo', name=f'roberta_large_neg{neg}_fold{fold}')
         trainer.train()
         run.finish()
-        trainer.save_model('../best_model/roberta_large_neg{neg}_fold{fold}')
-        trainer.save_state('../log/roberta_large_neg{neg}_fold{fold}')
+        trainer.save_model(f'../best_model/roberta_large_neg{neg}_fold{fold}')
+        trainer.save_state(f'../log/roberta_large_neg{neg}_fold{fold}')
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
