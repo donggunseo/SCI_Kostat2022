@@ -9,6 +9,7 @@ import argparse
 from sklearn.metrics import accuracy_score, f1_score
 
 def train(choice=10, kfold=5):
+    run = wandb.init(project='kostat', entity='donggunseo', name=f'roberta_large_choice{choice}_fold{fold}')
     os.environ["TOKENIZERS_PARALLELISM"] = "false"
     kfold_tokenized_dataset_list, tokenizer = prepare(choice=choice, kfold=kfold)
     for fold in range(kfold):
@@ -35,7 +36,6 @@ def train(choice=10, kfold=5):
             dataloader_num_workers = 2,
             load_best_model_at_end = True,
             metric_for_best_model = 'accuracy',
-            group_by_length = True,
             report_to = 'wandb',
         )
         def compute_metrics(pred):
@@ -52,7 +52,6 @@ def train(choice=10, kfold=5):
             tokenizer = tokenizer,
             compute_metrics = compute_metrics
         )
-        run = wandb.init(project='kostat', entity='donggunseo', name=f'roberta_large_choice{choice}_fold{fold}')
         trainer.train()
         run.finish()
         trainer.save_model(f'../best_model/roberta_large_choice{choice}_fold{fold}')
