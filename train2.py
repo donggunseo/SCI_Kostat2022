@@ -14,7 +14,6 @@ def train(choice=10, kfold=5):
     for fold in range(kfold):
         valid_dataset = kfold_tokenized_dataset_list[fold]
         train_dataset = concatenate_datasets([kfold_tokenized_dataset_list[i] for i in range(kfold) if i!=fold])
-        train_dataset.flatten_indices()
         config = AutoConfig.from_pretrained('klue/roberta-large')
         model = AutoModelForMultipleChoice.from_pretrained('klue/roberta-large', config=config)
         training_args = TrainingArguments(
