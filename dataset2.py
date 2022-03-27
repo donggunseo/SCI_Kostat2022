@@ -31,8 +31,6 @@ def prepare(choice = 10, kfold=5):
     query_df = create_kfold(df = query_df, kfold=kfold)
     class_text_list = list(class_df['class_text'])
     for fold in range(kfold):
-        if fold!=0:
-            break
         df = query_df[query_df['kfold']==fold].reset_index(drop=True)
         data_length = len(df)
         query_text_list = [query for query in df['query_text'] for _ in range(0,choice)]
