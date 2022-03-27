@@ -7,6 +7,7 @@ from tqdm import tqdm
 import random
 from utils import seed_everything
 import os
+import torch
 
 def generate_random_index(choice, gt):
     r = [i for i in range(232) if i!=gt]
@@ -30,6 +31,8 @@ def prepare(choice = 10, kfold=5):
     query_df = create_kfold(df = query_df, kfold=kfold)
     class_text_list = list(class_df['class_text'])
     for fold in range(kfold):
+        if fold!=0:
+            break
         df = query_df[query_df['kfold']==fold].reset_index(drop=True)
         data_length = len(df)
         query_text_list = [query for query in df['query_text'] for _ in range(0,choice)]
@@ -44,14 +47,17 @@ def prepare(choice = 10, kfold=5):
             query_text_list,
             choice_class_list,
             truncation=True,
-            padding='max_length',
+            padding=False,
             max_length=310,
             return_token_type_ids=False,
+            # return_tensors = 'pt'
         )
         key_list= list(encoding.keys())
         encoding = {key:[encoding[key][i:i+choice] for i in range(0,data_length*choice,choice)] for key in key_list}
+        # encoding = {k: v.view(data_length, choice, -1) for k, v in encoding.items()}
         assert len(encoding['input_ids'])==data_length, 'reshape size mismatch problem'
         encoding['labels'] = [choice-1 for _ in range(data_length)]
+        # encoding["labels"] = torch.tensor([choice-1 for _ in range(data_length)], dtype=torch.int64)
         dataset = Dataset.from_dict(encoding)
         dataset.flatten_indices()
         print(f'save dataset to {kfold_dataset_list[fold]}')

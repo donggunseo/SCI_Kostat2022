@@ -7,6 +7,7 @@ import numpy as np
 from utils import seed_everything
 import argparse
 from sklearn.metrics import accuracy_score, f1_score
+from model import DataCollatorForMultipleChoice
 
 def train(choice=10, kfold=5):
     os.environ["TOKENIZERS_PARALLELISM"] = "false"
@@ -43,12 +44,14 @@ def train(choice=10, kfold=5):
             acc = accuracy_score(labels, preds)
             f1 = f1_score(labels, preds, average='macro')
             return {'eval_accuracy' : acc, 'eval_f1':f1}
+        data_collator = DataCollatorForMultipleChoice(tokenizer)
         trainer=Trainer(
             model,
             training_args,
             train_dataset = train_dataset,
             eval_dataset = valid_dataset,
             tokenizer = tokenizer,
+            data_collator = data_collator,
             compute_metrics = compute_metrics
         )
         run = wandb.init(project='kostat', entity='donggunseo', name=f'roberta_large_choice{choice}_fold{fold}')
