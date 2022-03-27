@@ -44,8 +44,8 @@ def prepare(choice = 10, kfold=5):
             query_text_list,
             choice_class_list,
             truncation=True,
-            padding=True,
-            max_length=300,
+            padding='max_length',
+            max_length=310,
             return_token_type_ids=False,
         )
         key_list= list(encoding.keys())
@@ -76,8 +76,8 @@ def prepare_inference(tokenizer):
         query_text_list,
         class_text_list,
         truncation=True,
-        padding=True,
-        max_length=300,
+        padding='max_length',
+        max_length=310,
         return_token_type_ids=False,
     )
     key_list= list(encoding.keys())

@@ -135,6 +135,7 @@ class Model(nn.Module):
         super().__init__()
         self.roberta = RobertaModel.from_pretrained(model_checkpoint)
         self.classifier = nn.Linear(config.hidden_size, 1)
+        self.config = config
     
     def forward(
         self,
