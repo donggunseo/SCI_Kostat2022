@@ -1,4 +1,3 @@
-from statistics import mode
 from dataset2 import prepare_inference
 from transformers import AutoModelForMultipleChoice, TrainingArguments, AutoConfig, Trainer, AutoTokenizer
 import os
