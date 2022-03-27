@@ -11,7 +11,7 @@ from sklearn.metrics import accuracy_score, f1_score
 def train(choice=10, kfold=5):
     os.environ["TOKENIZERS_PARALLELISM"] = "false"
     kfold_tokenized_dataset_list, tokenizer = prepare(choice=choice, kfold=kfold)
-    for fold in kfold:
+    for fold in range(kfold):
         valid_dataset = kfold_tokenized_dataset_list[fold]
         train_dataset = concatenate_datasets([kfold_tokenized_dataset_list[i] for i in range(kfold) if i!=fold])
         train_dataset.flatten_indices()
