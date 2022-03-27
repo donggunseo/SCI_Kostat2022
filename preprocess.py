@@ -98,7 +98,7 @@ def make_class_format(df):
 def combine(type='train'):
     query_df = preprocess_query(type)
     class_df = preprocess_class()
-    if type!='train':
+    if type=='test':
         query_df.drop(['digit_1', 'digit_2', 'digit_3', 'text_obj', 'text_mthd', 'text_deal'], axis=1, inplace=True)
         class_df.drop(['1st_text', '2nd_text', '3rd_text'], axis=1, inplace=True)
         return query_df, class_df
