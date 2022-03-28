@@ -20,10 +20,10 @@ def train(choice=10, kfold=5):
             output_dir= f'../output/roberta_large_choice{choice}_fold{fold}',
             evaluation_strategy = 'steps',
             save_strategy = 'steps',
-            eval_steps = 5000,
-            save_steps = 5000,
-            per_device_train_batch_size = 4,
-            per_device_eval_batch_size = 4,
+            eval_steps = 6666, ## 에폭 당 약 66666 step이므로 각 에폭마다 1/10 포인트에서 evaluation 진행 
+            save_steps = 6666,
+            per_device_train_batch_size = 3,
+            per_device_eval_batch_size = 3,
             gradient_accumulation_steps = 1,
             learning_rate = 1e-5,
             weight_decay = 0.1,
@@ -37,6 +37,7 @@ def train(choice=10, kfold=5):
             dataloader_num_workers = 2,
             load_best_model_at_end = True,
             metric_for_best_model = 'accuracy',
+            group_by_length =True,
             report_to = 'wandb',
         )
         def compute_metrics(pred):
