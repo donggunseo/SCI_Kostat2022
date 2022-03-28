@@ -20,8 +20,8 @@ def train(choice=10, kfold=5):
             output_dir= f'../output/roberta_large_choice{choice}_fold{fold}',
             evaluation_strategy = 'steps',
             save_strategy = 'steps',
-            eval_steps = 6666, ## 에폭 당 약 66666 step이므로 각 에폭마다 1/10 포인트에서 evaluation 진행 
-            save_steps = 6666,
+            eval_steps = 13333, ## 에폭 당 약 66666 step이므로 각 에폭마다 1/10 포인트에서 evaluation 진행 
+            save_steps = 13333,
             per_device_train_batch_size = 3,
             per_device_eval_batch_size = 3,
             gradient_accumulation_steps = 1,
@@ -54,7 +54,7 @@ def train(choice=10, kfold=5):
             tokenizer = tokenizer,
             data_collator = data_collator,
             compute_metrics = compute_metrics,
-            callbacks=[EarlyStoppingCallback(early_stopping_patience=3)]
+            callbacks=[EarlyStoppingCallback(early_stopping_patience=2)]
         )
         run = wandb.init(project='kostat', entity='donggunseo', name=f'roberta_large_choice{choice}_fold{fold}')
         trainer.train()
