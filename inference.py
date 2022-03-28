@@ -1,5 +1,5 @@
 from dataset import prepare_inference
-from transformers import AutoModelForSequenceClassification, TrainingArguments, AutoConfig, DataCollatorWithPadding, Trainer
+from transformers import AutoModelForMultipleChoice, TrainingArguments, AutoConfig, Trainer, AutoTokenizer
 import os
 import gc
 gc.enable()
@@ -8,48 +8,41 @@ import torch
 import pandas as pd
 from utils import seed_everything
 import argparse
-
+from model import DataCollatorForMultipleChoice
 
 def inference(model_checkpoint):
-    for direc in model_checkpoint:
-        if os.path.isdir(direc)==False:
+    for dir in model_checkpoint:
+        if os.path.isdir(dir)==False:
             print('no directory')
-            return 
-    test_file = '../test_csv/test.csv'
-    tokenized_test_datasets, class_df, tokenizer, N_LABELS = prepare_inference(test_file, model_checkpoint[0])
-    kfold = len(model_checkpoint)
-    data_collator = DataCollatorWithPadding(tokenizer)
+            return
+    tokenizer = AutoTokenizer.from_pretrained(model_checkpoint[0])
+    tokenized_test_dataset, class_df = prepare_inference(tokenizer)
     os.environ["TOKENIZERS_PARALLELISM"] = "false"
-    training_args = TrainingArguments(per_device_eval_batch_size=32, output_dir = '../inference')
-    all_predictions = 0
+    kfold = len(model_checkpoint)
+    training_args = TrainingArguments(per_device_eval_batch_size=1, output_dir = '../inference')
+    all_predictions=0
+    data_collator = DataCollatorForMultipleChoice(tokenizer)
     for fold in kfold:
-        model_path =model_checkpoint[fold]
+        model_path = model_checkpoint[fold]
         config = AutoConfig.from_pretrained(model_path)
-        model = AutoModelForSequenceClassification.from_pretrained(model_path, config = config)
+        model = AutoModelForMultipleChoice.from_pretrained(model_path, config=config)
         trainer = Trainer(
             model = model,
             args = training_args,
             train_dataset = None,
-            eval_dataset=tokenized_test_datasets,
+            eval_dataset=tokenized_test_dataset,
             tokenizer = tokenizer,
-            data_collator = data_collator,
+            data_collator = data_collator
         )
-        predictions, _, _ = trainer.predict(test_dataset = tokenized_test_datasets)
+        predictions,_,_ = trainer.predict(test_dataset = tokenized_test_dataset)
         print("shape of prediction", predictions.shape)
         predictions = predictions.astype(np.float32)
         predictions = predictions/5
         all_predictions+=predictions
         torch.cuda.empty_cache()
         gc.collect()
-    all_predictions = np.array(all_predictions)
-    softmax = torch.nn.Softmax(dim=-1)
-    all_predictions = torch.tensor(all_predictions)
-    pred_score = softmax(all_predictions)
-    pred_score = pred_score.view(-1, 232, 2)
-    pred_score = pred_score.numpy()
-    pred_score = pred_score[:,:,1]
-    preds = np.argmax(pred_score, axis=-1)
-    print(preds.shape)
+    preds = all_predictions.argmax(-1)
+    print(all_predictions.shape)
     submission = pd.read_csv('../input/답안 작성용 파일.csv', encoding='CP949')
     first = []
     second = []
@@ -65,15 +58,10 @@ def inference(model_checkpoint):
     submission['digit_2'] = second
     submission['digit_3'] = third
     os.makedirs('../submission', exist_ok=True)
-    submission.to_csv(f'../submission/submission_neg1.csv')
+    submission.to_csv(f'../submission/submission_choice10.csv')
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--neg', type=int, default=1, help='decide the number of negative samples')
-    parser.add_argument('--kfold', type=int, default=5, help='decide the number of fold for stratify kfold')
-    args = parser.parse_args()
     seed_everything(42)
-    model_checkpoint = [f'../best_model/roberta_large_neg{args.neg}_fold{i}' for i in range(args.kfold)]
+    # model_checkpoint = [f'../best_model/roberta_large_choice10_fold{fold}' for fold in range(5)]
+    model_checkpoint=['../output/roberta_large_choice10_fold0/checkpoint-6666']
     inference(model_checkpoint)
-
-

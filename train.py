@@ -1,85 +1,71 @@
 from dataset import prepare
-from transformers import AutoModelForSequenceClassification, TrainingArguments, AutoConfig, DataCollatorWithPadding
+from transformers import AutoModelForMultipleChoice, TrainingArguments, AutoConfig, Trainer, EarlyStoppingCallback
 from datasets import concatenate_datasets
 import wandb
 import os
 import numpy as np
-from utils import seed_everything, post_processing
-from trainer import CustomTrainer
+from utils import seed_everything
 import argparse
 from sklearn.metrics import accuracy_score, f1_score
+from model import DataCollatorForMultipleChoice
 
-def train(neg=1, kfold = 5):
+def train(choice=10, kfold=5):
     os.environ["TOKENIZERS_PARALLELISM"] = "false"
-    train_file_list = [f'../neg{neg}_csv_{kfold}fold/train_neg{neg}_fold{i}.csv' for i in range(kfold)]
-    valid_file_list = [f'../neg9_csv_{kfold}fold/train_neg9_fold{i}.csv' for i in range(kfold)]
-    hf_train_dataset_list = [f'../train_dataset/train_dataset_neg{neg}_fold{i}' for i in range(kfold)]
-    hf_valid_dataset_list = [f'../valid_dataset/valid_dataset_neg9_fold{i}' for i in range(kfold)]
-    kfold_tokenized_train_dataset, kfold_tokenized_valid_dataset, tokenizer = prepare(
-        neg = neg, 
-        k = kfold, 
-        train_file_list = train_file_list, 
-        valid_file_list = valid_file_list,
-        hf_train_dataset_list=hf_train_dataset_list,
-        hf_valid_dataset_list=hf_valid_dataset_list
-    )
+    kfold_tokenized_dataset_list, tokenizer = prepare(choice=choice, kfold=kfold)
     for fold in range(kfold):
-        valid_datasets = kfold_tokenized_valid_dataset[fold]
-        valid_gt = list(valid_datasets['class_num'])
-        valid_gt = [valid_gt[i] for i in range(0, len(valid_gt), 10)]
-        train_datasets = concatenate_datasets([kfold_tokenized_train_dataset[i] for i in range(kfold) if i!=fold])
+        valid_dataset = kfold_tokenized_dataset_list[fold]
+        train_dataset = concatenate_datasets([kfold_tokenized_dataset_list[i] for i in range(kfold) if i!=fold])
         config = AutoConfig.from_pretrained('klue/roberta-large')
-        config.num_labels = 2
-        model = AutoModelForSequenceClassification.from_pretrained('klue/roberta-large', config = config)
+        model = AutoModelForMultipleChoice.from_pretrained('klue/roberta-large', config=config)
         training_args = TrainingArguments(
-            output_dir = f'../output/roberta_large_neg{neg}_fold{fold}',
-            evaluation_strategy = 'epoch',
-            per_device_train_batch_size = 32,
-            per_device_eval_batch_size = 32,
+            output_dir= f'../output/roberta_large_choice{choice}_fold{fold}',
+            evaluation_strategy = 'steps',
+            save_strategy = 'steps',
+            eval_steps = 6666,
+            save_steps = 6666,
+            per_device_train_batch_size = 4,
+            per_device_eval_batch_size = 4,
             gradient_accumulation_steps = 1,
             learning_rate = 1e-5,
             weight_decay = 0.1,
             num_train_epochs = 2,
             warmup_ratio = 0.06,
             logging_strategy = 'steps',
-            logging_dir = f'../log/roberta_large_neg{neg}_fold{fold}',
-            logging_steps = 50,
-            save_strategy = 'epoch',
+            logging_dir = f'../log/roberta_large_choice{choice}_fold{fold}',
+            logging_steps = 100,
             save_total_limit = 1,
             seed = 42,
             dataloader_num_workers = 2,
             load_best_model_at_end = True,
             metric_for_best_model = 'accuracy',
-            group_by_length = True,
             report_to = 'wandb',
         )
-        def compute_metrics(eval_gt, eval_preds):
-            assert len(eval_gt)==len(eval_preds), 'mismatch between gt and preds'
-            accuracy = accuracy_score(y_true = eval_gt, y_pred = eval_preds)
-            f1 = f1_score(y_true = eval_gt, y_pred = eval_preds, average = 'macro')
-            return {'eval_accuracy' : accuracy, 'f1' : f1}
-        data_collator = DataCollatorWithPadding(tokenizer)
-        trainer=CustomTrainer(
+        def compute_metrics(pred):
+            labels = pred.label_ids
+            preds = pred.predictions.argmax(-1)
+            acc = accuracy_score(labels, preds)
+            return {'eval_accuracy' : acc*100}
+        data_collator = DataCollatorForMultipleChoice(tokenizer)
+        trainer=Trainer(
             model,
             training_args,
-            train_dataset=train_datasets,
-            eval_dataset=valid_datasets,
-            eval_gt=valid_gt,
-            data_collator=data_collator,
-            tokenizer=tokenizer,
-            post_process_function = post_processing,
-            compute_metrics=compute_metrics
+            train_dataset = train_dataset,
+            eval_dataset = valid_dataset,
+            tokenizer = tokenizer,
+            data_collator = data_collator,
+            compute_metrics = compute_metrics,
+            callbacks=[EarlyStoppingCallback(early_stopping_patience=3)]
         )
-        run = wandb.init(project='kostat', entity='donggunseo', name=f'roberta_large_neg{neg}_fold{fold}')
+        run = wandb.init(project='kostat', entity='donggunseo', name=f'roberta_large_choice{choice}_fold{fold}')
         trainer.train()
         run.finish()
-        trainer.save_model(f'../best_model/roberta_large_neg{neg}_fold{fold}')
-        trainer.save_state(f'../log/roberta_large_neg{neg}_fold{fold}')
+        trainer.save_model(f'../best_model/roberta_large_choice{choice}_fold{fold}')
+        trainer.save_state(f'../training_state/roberta_large_choice{choice}_fold{fold}')
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument('--neg', type=int, default=1, help='decide the number of negative samples')
+    parser.add_argument('--choice', type=int, default=10, help='decide the number of choice')
     parser.add_argument('--kfold', type=int, default=5, help='decide the number of fold for stratify kfold')
     args = parser.parse_args()
     seed_everything(42)
-    train(args.neg, args.kfold)
+    train(args.choice, args.kfold)
