@@ -1,18 +1,16 @@
 from preprocess import combine
 from create_kfold import create_kfold
-import pandas as pd
 from datasets import Dataset, load_from_disk
 from transformers import AutoTokenizer
 from tqdm import tqdm
 import random
 from utils import seed_everything
 import os
-import torch
 
 def generate_random_index(choice, gt):
     r = [i for i in range(232) if i!=gt]
     num_label = random.sample(r, choice-1)
-    num_label.append(gt) ## gt는 가장 마지막에 들어있음!!
+    num_label.append(gt) ## gt는 가장 마지막에 들어있으므로 모든 Instance의 label = choice-1(9)!!
     return num_label
 
 def prepare(choice = 10, kfold=5):

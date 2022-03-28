@@ -3,11 +3,10 @@ from transformers import AutoModelForMultipleChoice, TrainingArguments, AutoConf
 from datasets import concatenate_datasets
 import wandb
 import os
-import numpy as np
 from utils import seed_everything
 import argparse
-from sklearn.metrics import accuracy_score, f1_score
-from model import DataCollatorForMultipleChoice
+from sklearn.metrics import accuracy_score
+from data_collator import DataCollatorForMultipleChoice
 
 def train(choice=10, kfold=5):
     os.environ["TOKENIZERS_PARALLELISM"] = "false"
@@ -21,8 +20,8 @@ def train(choice=10, kfold=5):
             output_dir= f'../output/roberta_large_choice{choice}_fold{fold}',
             evaluation_strategy = 'steps',
             save_strategy = 'steps',
-            eval_steps = 6666,
-            save_steps = 6666,
+            eval_steps = 5000,
+            save_steps = 5000,
             per_device_train_batch_size = 4,
             per_device_eval_batch_size = 4,
             gradient_accumulation_steps = 1,
@@ -32,7 +31,7 @@ def train(choice=10, kfold=5):
             warmup_ratio = 0.06,
             logging_strategy = 'steps',
             logging_dir = f'../log/roberta_large_choice{choice}_fold{fold}',
-            logging_steps = 100,
+            logging_steps = 200,
             save_total_limit = 1,
             seed = 42,
             dataloader_num_workers = 2,
@@ -45,7 +44,7 @@ def train(choice=10, kfold=5):
             preds = pred.predictions.argmax(-1)
             acc = accuracy_score(labels, preds)
             return {'eval_accuracy' : acc*100}
-        data_collator = DataCollatorForMultipleChoice(tokenizer)
+        data_collator = DataCollatorForMultipleChoice(tokenizer = tokenizer, do_train=True)
         trainer=Trainer(
             model,
             training_args,
