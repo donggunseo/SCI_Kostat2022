@@ -21,12 +21,12 @@ def prepare(choice = 10, kfold=5):
     tokenizer = AutoTokenizer.from_pretrained('klue/roberta-large')
     kfold_tokenized_dataset_list = []
     if len([f for f in kfold_dataset_list if os.path.isdir(f)])==len(kfold_dataset_list):
-        print('dataset file already exist! \n load dataset')
+        print('train dataset file already exist! \n load dataset')
         for fold in range(kfold):
             tokenized_dataset = load_from_disk(kfold_dataset_list[fold])
             kfold_tokenized_dataset_list.append(tokenized_dataset)
         return kfold_tokenized_dataset_list, tokenizer
-    print('Generating dataset from beginning')
+    print('Generating train dataset from beginning')
     query_df, class_df = combine('train')
     query_df = create_kfold(df = query_df, kfold=kfold)
     class_text_list = list(class_df['class_text'])
@@ -48,7 +48,6 @@ def prepare(choice = 10, kfold=5):
             padding=False,
             max_length=310,
             return_token_type_ids=False,
-            # return_tensors = 'pt'
         )
         key_list= list(encoding.keys())
         encoding = {key:[encoding[key][i:i+choice] for i in range(0,data_length*choice,choice)] for key in key_list}
@@ -56,7 +55,7 @@ def prepare(choice = 10, kfold=5):
         encoding['labels'] = [choice-1 for _ in range(data_length)]
         dataset = Dataset.from_dict(encoding)
         dataset.flatten_indices()
-        print(f'save dataset to {kfold_dataset_list[fold]}')
+        print(f'save train dataset to {kfold_dataset_list[fold]}')
         dataset.save_to_disk(kfold_dataset_list[fold])
         kfold_tokenized_dataset_list.append(dataset)
     return kfold_tokenized_dataset_list, tokenizer
@@ -65,10 +64,10 @@ def prepare_inference(tokenizer):
     test_dataset_path = f'../dataset/test_dataset'
     query_df, class_df = combine('test')
     if os.path.isdir(test_dataset_path):
-        print('dataset file already exist! \n load dataset')
+        print('test dataset file already exist! \n load dataset')
         test_tokenized_dataset = load_from_disk(test_dataset_path)
         return test_tokenized_dataset, class_df
-    print('Generating dataset from beginning')
+    print('Generating test dataset from beginning')
     data_length = len(query_df)
     class_text_list = list(class_df['class_text']) * data_length
     query_text_list = [query for query in query_df['query_text'] for _ in range(0,232)]
@@ -84,9 +83,10 @@ def prepare_inference(tokenizer):
     )
     key_list= list(encoding.keys())
     encoding = {key:[encoding[key][i:i+232] for i in range(0,data_length*232,232)] for key in key_list}
+    assert len(encoding['input_ids'])==data_length, 'reshape size mismatch problem'
     test_tokenized_dataset = Dataset.from_dict(encoding)
     test_tokenized_dataset.flatten_indices()
-    print(f'save dataset to {test_dataset_path}')
+    print(f'save test dataset to {test_dataset_path}')
     test_tokenized_dataset.save_to_disk(test_dataset_path)
     return test_tokenized_dataset, class_df
 

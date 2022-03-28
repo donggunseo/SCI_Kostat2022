@@ -1,4 +1,4 @@
-from transformers import RobertaModel, AutoConfig
+from transformers import RobertaModel, AutoConfig, RobertaForMultipleChoice
 import torch
 import torch.nn as nn
 from typing import Optional, Tuple, Any, Union
@@ -40,7 +40,8 @@ class DataCollatorForMultipleChoice:
 
     def __call__(self, features):
         label_name = "label" if "label" in features[0].keys() else "labels"
-        labels = [feature.pop(label_name) for feature in features]
+        if label_name in features[0].keys():
+            labels = [feature.pop(label_name) for feature in features]
         batch_size = len(features)
         num_choices = len(features[0]["input_ids"])
         flattened_features = [
@@ -59,7 +60,8 @@ class DataCollatorForMultipleChoice:
         # Un-flatten
         batch = {k: v.view(batch_size, num_choices, -1) for k, v in batch.items()}
         # Add back labels
-        batch["labels"] = torch.tensor(labels, dtype=torch.int64)
+        if label_name in features[0].keys():
+            batch["labels"] = torch.tensor(labels, dtype=torch.int64)
         return batch
 
 def is_tensor(x):
@@ -186,12 +188,9 @@ class MultipleChoiceModelOutput(ModelOutput):
     hidden_states: Optional[Tuple[torch.FloatTensor]] = None
     attentions: Optional[Tuple[torch.FloatTensor]] = None
 
-class Model(nn.Module):
-    def __init__(self, config, model_checkpoint):
-        super().__init__()
-        self.roberta = RobertaModel.from_pretrained(model_checkpoint)
-        self.classifier = nn.Linear(config.hidden_size, 1)
-        self.config = config
+class Model(RobertaForMultipleChoice):
+    def __init__(self, config):
+        super().__init__(config)
     
     def forward(
         self,
