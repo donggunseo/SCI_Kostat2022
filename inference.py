@@ -21,7 +21,7 @@ def inference(model_checkpoint):
     kfold = len(model_checkpoint)
     training_args = TrainingArguments(per_device_eval_batch_size=1, output_dir = '../inference')
     all_predictions=0
-    data_collator = DataCollatorForMultipleChoice(tokenizer = tokenizer, do_train=True)
+    data_collator = DataCollatorForMultipleChoice(tokenizer = tokenizer, do_train=False)
     for fold in range(kfold):
         model_path = model_checkpoint[fold]
         config = AutoConfig.from_pretrained(model_path)
