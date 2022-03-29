@@ -63,5 +63,6 @@ def inference(model_checkpoint):
 
 if __name__ == "__main__":
     seed_everything(42)
-    model_checkpoint = [f'../best_model/roberta_large_choice10_fold{fold}' for fold in range(5)]
+    # model_checkpoint = [f'../best_model/roberta_large_choice10_fold{fold}' for fold in range(5)]
+    model_checkpoint = ['../output/roberta_large_choice10_fold0/checkpoint-133330']
     inference(model_checkpoint)

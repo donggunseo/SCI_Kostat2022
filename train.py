@@ -12,6 +12,8 @@ def train(choice=10, kfold=5):
     os.environ["TOKENIZERS_PARALLELISM"] = "false"
     kfold_tokenized_dataset_list, tokenizer = prepare(choice=choice, kfold=kfold)
     for fold in range(kfold):
+        if fold==0:
+            continue
         valid_dataset = kfold_tokenized_dataset_list[fold]
         train_dataset = concatenate_datasets([kfold_tokenized_dataset_list[i] for i in range(kfold) if i!=fold])
         config = AutoConfig.from_pretrained('klue/roberta-large')
@@ -60,7 +62,7 @@ def train(choice=10, kfold=5):
         trainer.train()
         run.finish()
         trainer.save_model(f'../best_model/roberta_large_choice{choice}_fold{fold}')
-        trainer.save_state(f'../training_state/roberta_large_choice{choice}_fold{fold}')
+        # trainer.save_state(f'../training_state/roberta_large_choice{choice}_fold{fold}')
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
