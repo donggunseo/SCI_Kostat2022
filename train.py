@@ -62,7 +62,7 @@ def train(choice=10, kfold=5):
         trainer.train()
         run.finish()
         trainer.save_model(f'../best_model/roberta_large_choice{choice}_fold{fold}')
-        # trainer.save_state(f'../training_state/roberta_large_choice{choice}_fold{fold}')
+        trainer.save_state()
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
