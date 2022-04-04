@@ -10,6 +10,7 @@ from utils import seed_everything
 from data_collator import DataCollatorForMultipleChoice
 import torch.nn as nn
 
+
 def inference(model_checkpoint):
     for dir in model_checkpoint:
         if os.path.isdir(dir)==False:
@@ -63,6 +64,8 @@ def inference(model_checkpoint):
     submission['digit_3'] = third
     os.makedirs('../submission', exist_ok=True)
     submission.to_csv(f'../submission/submission_choice10.csv', index=False)
+    submission['logits'] = all_predictions
+    submission.to_csv(f'../submission/submission_choice10_forensemble.csv', index=False)
 
 if __name__ == "__main__":
     seed_everything(42)
