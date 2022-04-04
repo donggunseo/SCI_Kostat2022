@@ -1,5 +1,5 @@
-from dataset import prepare_inference
-from transformers import AutoModelForMultipleChoice, TrainingArguments, AutoConfig, Trainer, AutoTokenizer
+from dataset import prepare_BC_inference
+from transformers import AutoModelForSequenceClassification, DataCollatorWithPadding, TrainingArguments, AutoConfig, Trainer, AutoTokenizer, DatacollatorWithPadding
 import os
 import gc
 gc.enable()
@@ -7,7 +7,8 @@ import numpy as np
 import torch
 import pandas as pd
 from utils import seed_everything
-from data_collator import DataCollatorForMultipleChoice
+import torch.nn as nn
+
 
 def inference(model_checkpoint):
     for dir in model_checkpoint:
@@ -15,17 +16,17 @@ def inference(model_checkpoint):
             print('no directory')
             return
     tokenizer = AutoTokenizer.from_pretrained(model_checkpoint[0])
-    tokenized_test_dataset, class_df = prepare_inference(tokenizer)
+    tokenized_test_dataset, class_df = prepare_BC_inference(tokenizer)
     print('length of test_dataset : ',len(tokenized_test_dataset))
     os.environ["TOKENIZERS_PARALLELISM"] = "false"
     kfold = len(model_checkpoint)
     training_args = TrainingArguments(per_device_eval_batch_size=1, output_dir = '../inference')
     all_predictions=0
-    data_collator = DataCollatorForMultipleChoice(tokenizer = tokenizer, do_train=False)
+    data_collator = DataCollatorWithPadding(tokenizer = tokenizer)
     for fold in range(kfold):
         model_path = model_checkpoint[fold]
         config = AutoConfig.from_pretrained(model_path)
-        model = AutoModelForMultipleChoice.from_pretrained(model_path, config=config)
+        model = AutoModelForSequenceClassification.from_pretrained(model_path, config=config)
         trainer = Trainer(
             model = model,
             args = training_args,
@@ -36,6 +37,9 @@ def inference(model_checkpoint):
         )
         predictions,_,_ = trainer.predict(test_dataset = tokenized_test_dataset)
         print("shape of prediction", predictions.shape)
+        softmax = nn.Softmax(dim=-1)
+        predictions = predictions.view(-1, 232, 2)
+        predictions = softmax(predictions)
         predictions = predictions.astype(np.float32)
         predictions = predictions/kfold
         all_predictions+=predictions
@@ -59,10 +63,9 @@ def inference(model_checkpoint):
     submission['digit_2'] = second
     submission['digit_3'] = third
     os.makedirs('../submission', exist_ok=True)
-    submission.to_csv(f'../submission/submission_choice10.csv', index=False)
+    submission.to_csv(f'../submission/submission_neg3.csv', index=False)
 
 if __name__ == "__main__":
     seed_everything(42)
-    # model_checkpoint = [f'../best_model/roberta_large_choice10_fold{fold}' for fold in range(5)]
-    model_checkpoint = ['../output/roberta_large_choice10_fold0/checkpoint-133330']
+    model_checkpoint = [f'../best_model/roberta_large_neg3_fold{fold}' for fold in range(5)]
     inference(model_checkpoint)

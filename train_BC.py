@@ -1,39 +1,35 @@
-from dataset import prepare
-from transformers import AutoModelForMultipleChoice, TrainingArguments, AutoConfig, Trainer, EarlyStoppingCallback
+from dataset import prepare_BC
+from transformers import AutoModelForSequenceClassification, TrainingArguments, AutoConfig, Trainer, EarlyStoppingCallback, DataCollatorWithPadding
 from datasets import concatenate_datasets
 import wandb
 import os
 from utils import seed_everything
 import argparse
 from sklearn.metrics import accuracy_score
-from data_collator import DataCollatorForMultipleChoice
 
-def train(choice=10, kfold=5):
+def train(neg = 3, kfold=5):
     os.environ["TOKENIZERS_PARALLELISM"] = "false"
-    kfold_tokenized_dataset_list, tokenizer = prepare(choice=choice, kfold=kfold)
+    kfold_tokenized_dataset_list, tokenizer = prepare_BC(neg = 3, kfold=kfold)
     for fold in range(kfold):
-        if fold==0:
-            continue
         valid_dataset = kfold_tokenized_dataset_list[fold]
         train_dataset = concatenate_datasets([kfold_tokenized_dataset_list[i] for i in range(kfold) if i!=fold])
+        config.num_labels = 2
         config = AutoConfig.from_pretrained('klue/roberta-large')
-        model = AutoModelForMultipleChoice.from_pretrained('klue/roberta-large', config=config)
+        model = AutoModelForSequenceClassification.from_pretrained('klue/roberta-large', config=config)
         training_args = TrainingArguments(
-            output_dir= f'../output/roberta_large_choice{choice}_fold{fold}',
-            evaluation_strategy = 'steps',
-            save_strategy = 'steps',
-            eval_steps = 13333, ## 에폭 당 약 66666 step이므로 각 에폭마다 1/10 포인트에서 evaluation 진행 
-            save_steps = 13333,
-            per_device_train_batch_size = 3,
-            per_device_eval_batch_size = 3,
+            output_dir= f'../output/roberta_large_neg{neg}_fold{fold}',
+            evaluation_strategy = 'epoch',
+            save_strategy = 'epoch',
+            per_device_train_batch_size = 32,
+            per_device_eval_batch_size = 32,
             gradient_accumulation_steps = 1,
             learning_rate = 1e-5,
             weight_decay = 0.1,
-            num_train_epochs = 2,
+            num_train_epochs = 4,
             warmup_ratio = 0.06,
             logging_strategy = 'steps',
-            logging_dir = f'../log/roberta_large_choice{choice}_fold{fold}',
-            logging_steps = 200,
+            logging_dir = f'../log/roberta_large_neg{neg}_fold{fold}',
+            logging_steps = 100,
             save_total_limit = 1,
             seed = 42,
             dataloader_num_workers = 2,
@@ -47,7 +43,7 @@ def train(choice=10, kfold=5):
             preds = pred.predictions.argmax(-1)
             acc = accuracy_score(labels, preds)
             return {'eval_accuracy' : acc*100}
-        data_collator = DataCollatorForMultipleChoice(tokenizer = tokenizer, do_train=True)
+        data_collator = DataCollatorWithPadding(tokenizer = tokenizer)
         trainer=Trainer(
             model,
             training_args,
@@ -58,16 +54,16 @@ def train(choice=10, kfold=5):
             compute_metrics = compute_metrics,
             callbacks=[EarlyStoppingCallback(early_stopping_patience=2)]
         )
-        run = wandb.init(project='kostat', entity='donggunseo', name=f'roberta_large_choice{choice}_fold{fold}')
+        run = wandb.init(project='kostat', entity='donggunseo', name=f'roberta_large_neg{neg}_fold{fold}')
         trainer.train()
         run.finish()
-        trainer.save_model(f'../best_model/roberta_large_choice{choice}_fold{fold}')
+        trainer.save_model(f'../best_model/roberta_large_neg{neg}_fold{fold}')
         trainer.save_state()
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument('--choice', type=int, default=10, help='decide the number of choice')
+    parser.add_argument('--neg', type=int, default=3, help='decide the number of negative samples')
     parser.add_argument('--kfold', type=int, default=5, help='decide the number of fold for stratify kfold')
     args = parser.parse_args()
     seed_everything(42)
-    train(args.choice, args.kfold)
+    train(args.neg, args.kfold)
