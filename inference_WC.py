@@ -1,5 +1,5 @@
 from dataset import prepare_WC_inference
-from transformers import AutoModelForSequenceClassification, DataCollatorWithPadding, TrainingArguments, AutoConfig, Trainer, AutoTokenizer, DatacollatorWithPadding
+from transformers import AutoModelForSequenceClassification, DataCollatorWithPadding, TrainingArguments, AutoConfig, Trainer, AutoTokenizer
 import os
 import gc
 gc.enable()
