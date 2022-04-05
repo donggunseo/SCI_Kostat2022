@@ -13,8 +13,8 @@ def train(kfold=5):
     for fold in range(kfold):
         valid_dataset = kfold_tokenized_dataset_list[fold]
         train_dataset = concatenate_datasets([kfold_tokenized_dataset_list[i] for i in range(kfold) if i!=fold])
-        config.num_labels = 232
         config = AutoConfig.from_pretrained('klue/roberta-large')
+        config.num_labels = 232
         model = AutoModelForSequenceClassification.from_pretrained('klue/roberta-large', config=config)
         training_args = TrainingArguments(
             output_dir= f'../output/roberta_large_WC_fold{fold}',
