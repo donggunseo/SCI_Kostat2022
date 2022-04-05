@@ -20,7 +20,7 @@ def inference(model_checkpoint):
     print('length of test_dataset : ',len(tokenized_test_dataset))
     os.environ["TOKENIZERS_PARALLELISM"] = "false"
     kfold = len(model_checkpoint)
-    training_args = TrainingArguments(per_device_eval_batch_size=64, output_dir = '../inference')
+    training_args = TrainingArguments(per_device_eval_batch_size=128, output_dir = '../inference')
     all_predictions=0
     data_collator = DataCollatorWithPadding(tokenizer = tokenizer)
     for fold in range(kfold):
