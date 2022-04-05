@@ -177,7 +177,7 @@ def prepare_WC(kfold=5):
     query_df = create_kfold(df = query_df, kfold=kfold)
     for fold in range(kfold):
         df = query_df[query_df['kfold']==fold].reset_index(drop=True)
-        query_text_list = df['query_text']
+        query_text_list = list(df['query_text'])
         print(f'tokenize for fold{fold}')
         encoding = tokenizer(
             query_text_list,
