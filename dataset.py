@@ -205,7 +205,7 @@ def prepare_WC_inference(tokenizer):
         return test_tokenized_dataset, class_df
     print('Generating test dataset from beginning')
     data_length = len(query_df)
-    query_text_list = query_df['query_text']
+    query_text_list = list(query_df['query_text'])
     print(f'tokenize')
     encoding = tokenizer(
         query_text_list,
