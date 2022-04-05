@@ -1,4 +1,4 @@
-from dataset import prepare_BC_inference
+from dataset import prepare_WC_inference
 from transformers import AutoModelForSequenceClassification, DataCollatorWithPadding, TrainingArguments, AutoConfig, Trainer, AutoTokenizer, DatacollatorWithPadding
 import os
 import gc
@@ -16,11 +16,11 @@ def inference(model_checkpoint):
             print('no directory')
             return
     tokenizer = AutoTokenizer.from_pretrained(model_checkpoint[0])
-    tokenized_test_dataset, class_df = prepare_BC_inference(tokenizer)
+    tokenized_test_dataset, class_df = prepare_WC_inference(tokenizer)
     print('length of test_dataset : ',len(tokenized_test_dataset))
     os.environ["TOKENIZERS_PARALLELISM"] = "false"
     kfold = len(model_checkpoint)
-    training_args = TrainingArguments(per_device_eval_batch_size=32, output_dir = '../inference')
+    training_args = TrainingArguments(per_device_eval_batch_size=64, output_dir = '../inference')
     all_predictions=0
     data_collator = DataCollatorWithPadding(tokenizer = tokenizer)
     for fold in range(kfold):
@@ -39,12 +39,9 @@ def inference(model_checkpoint):
         print("shape of prediction", predictions.shape)
         softmax = nn.Softmax(dim=-1)
         predictions = torch.tensor(predictions)
-        predictions = predictions.view(-1, 232, 2)
         predictions = softmax(predictions)
-        predictions = predictions[:,:,1]
         predictions = predictions.astype(np.float32)
         predictions = predictions/kfold
-        print(predictions.shape)
         all_predictions+=predictions
         torch.cuda.empty_cache()
         gc.collect()
@@ -66,9 +63,11 @@ def inference(model_checkpoint):
     submission['digit_2'] = second
     submission['digit_3'] = third
     os.makedirs('../submission', exist_ok=True)
-    submission.to_csv(f'../submission/submission_neg3.csv', index=False)
+    submission.to_csv(f'../submission/submission_WC.csv', index=False)
+    submission['logits'] = all_predictions
+    submission.to_csv(f'../submission/submission_WC_forensemble.csv', index=False)
 
 if __name__ == "__main__":
     seed_everything(42)
-    model_checkpoint = [f'../best_model/roberta_large_neg3_fold{fold}' for fold in range(5)]
+    model_checkpoint = [f'../best_model/roberta_large_WC_fold{fold}' for fold in range(5)]
     inference(model_checkpoint)
