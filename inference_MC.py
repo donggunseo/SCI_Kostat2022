@@ -39,6 +39,7 @@ def inference(model_checkpoint):
         predictions,_,_ = trainer.predict(test_dataset = tokenized_test_dataset)
         print("shape of prediction", predictions.shape)
         softmax = nn.Softmax(dim=-1)
+        predictions = torch.tensor(predictions)
         predictions = softmax(predictions)
         predictions = predictions.astype(np.float32)
         predictions = predictions/kfold
