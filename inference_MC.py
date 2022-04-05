@@ -62,7 +62,7 @@ def inference(model_checkpoint):
     submission['digit_3'] = third
     os.makedirs('../submission', exist_ok=True)
     submission.to_csv(f'../submission/submission_choice10.csv', index=False)
-    submission['logits'] = all_predictions
+    submission['logits'] = list(all_predictions)
     submission.to_csv(f'../submission/submission_choice10_forensemble.csv', index=False)
 
 if __name__ == "__main__":
