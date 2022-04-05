@@ -55,7 +55,7 @@ def train(kfold=5):
             compute_metrics = compute_metrics,
             callbacks=[EarlyStoppingCallback(early_stopping_patience=2)]
         )
-        run = wandb.init(project='kostat', entity='donggunseo', name=f'roberta_large_WC_fold{fold}')
+        run = wandb.init(project='kostat', entity='donggunseo', name=f'roberta_large_WC_5epoch_fold{fold}')
         trainer.train()
         run.finish()
         trainer.save_model(f'../best_model/roberta_large_WC_fold{fold}')
