@@ -60,9 +60,9 @@ def inference(model_checkpoint):
     submission['digit_2'] = second
     submission['digit_3'] = third
     os.makedirs('../submission', exist_ok=True)
-    submission.to_csv(f'../submission/submission_WC_3e-5.csv', index=False)
+    submission.to_csv(f'../submission/submission_WC.csv', index=False)
     submission['logits'] = all_predictions.tolist()
-    submission.to_csv(f'../submission/submission_WC_3e-5_forensemble.csv', index=False)
+    submission.to_csv(f'../submission/submission_WC_forensemble.csv', index=False)
 
 if __name__ == "__main__":
     seed_everything(42)

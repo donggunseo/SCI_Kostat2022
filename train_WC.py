@@ -23,7 +23,7 @@ def train(kfold=5):
             per_device_train_batch_size = 128,
             per_device_eval_batch_size = 128,
             gradient_accumulation_steps = 1,
-            learning_rate = 3e-5,
+            learning_rate = 5e-5,
             weight_decay = 0.1,
             num_train_epochs = 4,
             warmup_ratio = 0.1,
@@ -55,7 +55,7 @@ def train(kfold=5):
             compute_metrics = compute_metrics,
             callbacks=[EarlyStoppingCallback(early_stopping_patience=2)]
         )
-        run = wandb.init(project='kostat', entity='donggunseo', name=f'roberta_large_WC_lr3e-5_fold{fold}')
+        run = wandb.init(project='kostat', entity='donggunseo', name=f'roberta_large_WC_fold{fold}')
         trainer.train()
         run.finish()
         trainer.save_model(f'../best_model/roberta_large_WC_fold{fold}')
