@@ -16,16 +16,16 @@ def train(kfold=5):
         train_dataset = concatenate_datasets([kfold_tokenized_dataset_list[i] for i in range(kfold) if i!=fold])
         config = AutoConfig.from_pretrained('klue/roberta-large')
         config.num_labels = 232
-        model = AutoModelForSequenceClassification.from_pretrained('klue/roberta-large', config=config)
-        # model = CustomModel.from_pretrained('klue/roberta-large', config=config)
+        # model = AutoModelForSequenceClassification.from_pretrained('klue/roberta-large', config=config)
+        model = CustomModel.from_pretrained('klue/roberta-large', config=config)
         training_args = TrainingArguments(
             output_dir= f'../output/roberta_large_WC_fold{fold}',
             evaluation_strategy = 'epoch',
             save_strategy = 'epoch',
-            per_device_train_batch_size = 256,
-            per_device_eval_batch_size = 256,
+            per_device_train_batch_size = 32,
+            per_device_eval_batch_size = 32,
             gradient_accumulation_steps = 1,
-            learning_rate = 2e-4,
+            learning_rate = 5e-5,
             weight_decay = 0.1,
             num_train_epochs = 4,
             warmup_ratio = 0.1,
