@@ -6,6 +6,7 @@ import os
 from utils import seed_everything
 import argparse
 from sklearn.metrics import accuracy_score, f1_score
+from model import CustomModel
 
 def train(kfold=5):
     os.environ["TOKENIZERS_PARALLELISM"] = "false"
@@ -15,20 +16,20 @@ def train(kfold=5):
         train_dataset = concatenate_datasets([kfold_tokenized_dataset_list[i] for i in range(kfold) if i!=fold])
         config = AutoConfig.from_pretrained('klue/roberta-large')
         config.num_labels = 232
-        model = AutoModelForSequenceClassification.from_pretrained('klue/roberta-large', config=config)
+        # model = AutoModelForSequenceClassification.from_pretrained('klue/roberta-large', config=config)
+        model = CustomModel.from_pretrained('klue/roberta-large', config=config)
         training_args = TrainingArguments(
-            output_dir= f'../output/roberta_large_WC_fold{fold}',
+            output_dir= f'../output/roberta_large_WC_md_fold{fold}',
             evaluation_strategy = 'epoch',
             save_strategy = 'epoch',
-            per_device_train_batch_size = 128,
-            per_device_eval_batch_size = 128,
+            per_device_train_batch_size = 192,
+            per_device_eval_batch_size = 192,
             gradient_accumulation_steps = 1,
-            learning_rate = 5e-5,
+            learning_rate = 4e-5,
             weight_decay = 0.1,
-            num_train_epochs = 4,
-            warmup_ratio = 0.1,
+            num_train_epochs = 5,
+            warmup_ratio = 0.06,
             logging_strategy = 'steps',
-            logging_dir = f'../log/roberta_large_WC_fold{fold}',
             logging_steps = 50,
             save_total_limit = 1,
             seed = 42,
@@ -55,10 +56,10 @@ def train(kfold=5):
             compute_metrics = compute_metrics,
             callbacks=[EarlyStoppingCallback(early_stopping_patience=2)]
         )
-        run = wandb.init(project='kostat', entity='donggunseo', name=f'roberta_large_WC_fold{fold}')
+        run = wandb.init(project='kostat', entity='donggunseo', name=f'roberta_large_WC_md_fold{fold}')
         trainer.train()
         run.finish()
-        trainer.save_model(f'../best_model/roberta_large_WC_fold{fold}')
+        trainer.save_model(f'../best_model/roberta_large_WC_md_fold{fold}')
         trainer.save_state()
 
 if __name__ == "__main__":
