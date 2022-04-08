@@ -172,7 +172,7 @@ class CustomModel(RobertaForSequenceClassification):
         sequence_output = outputs[0]
         cls_output = sequence_output[:,0,:]
         x = self.dropout(cls_output)
-        x = self.dense
+        x = self.dense(x)
         x = torch.tanh(x)
         x_1 = self.dropout1(x)
         x_2 = self.dropout2(x)
