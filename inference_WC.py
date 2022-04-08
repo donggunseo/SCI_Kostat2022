@@ -27,8 +27,8 @@ def inference(model_checkpoint):
     for fold in range(kfold):
         model_path = model_checkpoint[fold]
         config = AutoConfig.from_pretrained(model_path)
-        # model = AutoModelForSequenceClassification.from_pretrained(model_path, config=config)
-        model = CustomModel.from_pretrained(model_path, config=config)
+        model = AutoModelForSequenceClassification.from_pretrained(model_path, config=config)
+        # model = CustomModel.from_pretrained(model_path, config=config)
         trainer = Trainer(
             model = model,
             args = training_args,
