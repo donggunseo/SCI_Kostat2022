@@ -1,0 +1,25 @@
+test dataset file already exist! 
+ load dataset
+length of test_dataset :  100000
+model load from :  ../best_model/roberta_large_WC_fold0
+best model for fold0 is Original Sequence classification model
+shape of prediction (100000, 232)
+Aggregate fold0 model logit
+model load from :  ../best_model/roberta_large_WC_fold1
+best model for fold1 is Original Sequence classification model
+shape of prediction (100000, 232)
+Aggregate fold1 model logit
+model load from :  ../best_model/roberta_large_WC_MD_fold2
+best model for fold2 is multi-dropout Sequence classification model
+shape of prediction (100000, 232)
+Aggregate fold2 model logit
+model load from :  ../best_model/roberta_large_WC_MD_fold3
+best model for fold3 is multi-dropout Sequence classification model
+shape of prediction (100000, 232)
+Aggregate fold3 model logit
+model load from :  ../best_model/roberta_large_WC_MD_fold4
+best model for fold4 is multi-dropout Sequence classification model
+shape of prediction (100000, 232)
+Aggregate fold4 model logit
+shape of label prediction after argmax (100000,)
+save result as csv
