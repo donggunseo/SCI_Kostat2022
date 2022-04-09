@@ -1,5 +1,5 @@
 from dataset import prepare_WC
-from transformers import AutoModelForSequenceClassification, TrainingArguments, AutoConfig, Trainer, EarlyStoppingCallback, DataCollatorWithPadding
+from transformers import TrainingArguments, AutoConfig, Trainer, EarlyStoppingCallback, DataCollatorWithPadding
 from datasets import concatenate_datasets
 import wandb
 import os

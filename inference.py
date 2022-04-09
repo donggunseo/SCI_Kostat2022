@@ -7,7 +7,6 @@ import numpy as np
 import torch
 import pandas as pd
 from utils import seed_everything
-import torch.nn as nn
 from model import CustomModel
 
 
