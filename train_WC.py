@@ -17,13 +17,13 @@ def train(kfold=5):
         config.num_labels = 232
         model = AutoModelForSequenceClassification.from_pretrained('klue/roberta-large', config=config)
         training_args = TrainingArguments(
-            output_dir= f'../output/roberta_large_WC_256_fold{fold}',
+            output_dir= f'../output/roberta_large_WC_fold{fold}',
             evaluation_strategy = 'epoch',
             save_strategy = 'epoch',
-            per_device_train_batch_size = 256,
-            per_device_eval_batch_size = 256,
+            per_device_train_batch_size = 128,
+            per_device_eval_batch_size = 128,
             gradient_accumulation_steps = 1,
-            learning_rate = 1e-4,
+            learning_rate = 5e-5,
             weight_decay = 0.1,
             num_train_epochs = 4,
             warmup_ratio = 0.1,
@@ -54,10 +54,10 @@ def train(kfold=5):
             compute_metrics = compute_metrics,
             callbacks=[EarlyStoppingCallback(early_stopping_patience=2)]
         )
-        run = wandb.init(project='kostat', entity='donggunseo', name=f'roberta_large_WC_256_fold{fold}')
+        run = wandb.init(project='kostat', entity='donggunseo', name=f'roberta_large_WC_fold{fold}')
         trainer.train()
         run.finish()
-        trainer.save_model(f'../best_model/roberta_large_WC_256_fold{fold}')
+        trainer.save_model(f'../best_model/roberta_large_WC_fold{fold}')
         trainer.save_state()
 
 if __name__ == "__main__":

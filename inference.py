@@ -8,6 +8,7 @@ import torch
 import pandas as pd
 from utils import seed_everything
 from model import CustomModel
+from tqdm import tqdm
 
 
 def inference(model_checkpoint):
@@ -25,10 +26,13 @@ def inference(model_checkpoint):
     data_collator = DataCollatorWithPadding(tokenizer = tokenizer)
     for fold in range(kfold):
         model_path = model_checkpoint[fold]
+        print("model load from : ", model_path)
         config = AutoConfig.from_pretrained(model_path)
         if fold==0 or fold==1:
+            print(f"best model for fold{fold} is Original Sequence classification model")
             model = AutoModelForSequenceClassification.from_pretrained(model_path, config=config)
         else:
+            print(f"best model for fold{fold} is multi-dropout Sequence classification model")
             model = CustomModel.from_pretrained(model_path, config=config)
         trainer = Trainer(
             model = model,
@@ -40,19 +44,19 @@ def inference(model_checkpoint):
         )
         predictions,_,_ = trainer.predict(test_dataset = tokenized_test_dataset)
         print("shape of prediction", predictions.shape)
+        print(f"Aggregate fold{fold} model logit")
         predictions = predictions.astype(np.float32)
         predictions = predictions/kfold
         all_predictions+=predictions
         torch.cuda.empty_cache()
         gc.collect()
-    print(all_predictions.shape)
     preds = all_predictions.argmax(-1)
-    print(preds.shape)
+    print("shape of label prediction after argmax",preds.shape)
     submission = pd.read_csv('../input/답안 작성용 파일.csv', encoding='CP949')
     first = []
     second = []
     third = []
-    for pred in preds:
+    for pred in tqdm(preds, desc = "add prediction to Dataframe"):
         a = list(class_df[class_df['class_num']==pred]['1st'])[0]
         b = list(class_df[class_df['class_num']==pred]['2nd'])[0]
         c = list(class_df[class_df['class_num']==pred]['3rd'])[0]
@@ -62,6 +66,7 @@ def inference(model_checkpoint):
     submission['digit_1'] = first
     submission['digit_2'] = second
     submission['digit_3'] = third
+    print("save result as csv")
     os.makedirs('../submission', exist_ok=True)
     submission.to_csv(f'../submission/submission.csv', index=False)
 
