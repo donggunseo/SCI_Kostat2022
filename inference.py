@@ -27,8 +27,10 @@ def inference(model_checkpoint):
     for fold in range(kfold):
         model_path = model_checkpoint[fold]
         config = AutoConfig.from_pretrained(model_path)
-        # model = AutoModelForSequenceClassification.from_pretrained(model_path, config=config)
-        model = CustomModel.from_pretrained(model_path, config=config)
+        if fold==0 or fold==1:
+            model = AutoModelForSequenceClassification.from_pretrained(model_path, config=config)
+        else:
+            model = CustomModel.from_pretrained(model_path, config=config)
         trainer = Trainer(
             model = model,
             args = training_args,
@@ -63,10 +65,10 @@ def inference(model_checkpoint):
     submission['digit_3'] = third
     os.makedirs('../submission', exist_ok=True)
     submission.to_csv(f'../submission/submission_WC.csv', index=False)
-    # submission['logits'] = all_predictions.tolist()
-    # submission.to_csv(f'../submission/submission_WC_forensemble.csv', index=False)
 
 if __name__ == "__main__":
     seed_everything(42)
-    model_checkpoint = [f'../best_model/roberta_large_WC_fold{fold}' for fold in range(5)]
+    model_checkpoint = [f'../best_model/roberta_large_WC_og_fold{fold}' for fold in range(0,2)]
+    model_checkpoint1 = [f'../best_model/roberta_large_WC_fold{fold}' for fold in range(2,5)]
+    model_checkpoint.extend(model_checkpoint1)
     inference(model_checkpoint)
