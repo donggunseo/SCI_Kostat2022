@@ -16,10 +16,10 @@ def train(kfold=5):
         train_dataset = concatenate_datasets([kfold_tokenized_dataset_list[i] for i in range(kfold) if i!=fold])
         config = AutoConfig.from_pretrained('klue/roberta-large')
         config.num_labels = 232
-        # model = AutoModelForSequenceClassification.from_pretrained('klue/roberta-large', config=config)
-        model = CustomModel.from_pretrained('klue/roberta-large', config=config)
+        model = AutoModelForSequenceClassification.from_pretrained('klue/roberta-large', config=config)
+        # model = CustomModel.from_pretrained('klue/roberta-large', config=config)
         training_args = TrainingArguments(
-            output_dir= f'../output/roberta_large_WC_fold{fold}',
+            output_dir= f'../output/roberta_large_WC_og_fold{fold}',
             evaluation_strategy = 'epoch',
             save_strategy = 'epoch',
             per_device_train_batch_size = 128,
@@ -56,10 +56,10 @@ def train(kfold=5):
             compute_metrics = compute_metrics,
             callbacks=[EarlyStoppingCallback(early_stopping_patience=2)]
         )
-        run = wandb.init(project='kostat', entity='donggunseo', name=f'roberta_large_WC_fold{fold}')
+        run = wandb.init(project='kostat', entity='donggunseo', name=f'roberta_large_WC_og_fold{fold}')
         trainer.train()
         run.finish()
-        trainer.save_model(f'../best_model/roberta_large_WC_fold{fold}')
+        trainer.save_model(f'../best_model/roberta_large_WC_og_fold{fold}')
         trainer.save_state()
 
 if __name__ == "__main__":
