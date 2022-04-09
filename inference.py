@@ -64,11 +64,12 @@ def inference(model_checkpoint):
     submission['digit_2'] = second
     submission['digit_3'] = third
     os.makedirs('../submission', exist_ok=True)
-    submission.to_csv(f'../submission/submission_WC.csv', index=False)
+    submission.to_csv(f'../submission/submission.csv', index=False)
 
 if __name__ == "__main__":
     seed_everything(42)
-    model_checkpoint = [f'../best_model/roberta_large_WC_og_fold{fold}' for fold in range(0,2)]
-    model_checkpoint1 = [f'../best_model/roberta_large_WC_fold{fold}' for fold in range(2,5)]
+    ## Fold별 결과를 보고 best choice만 골라서 path에 담기
+    model_checkpoint = [f'../best_model/roberta_large_WC_fold{fold}' for fold in range(0,2)]
+    model_checkpoint1 = [f'../best_model/roberta_large_WC_MD_fold{fold}' for fold in range(2,5)]
     model_checkpoint.extend(model_checkpoint1)
     inference(model_checkpoint)
