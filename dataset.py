@@ -3,10 +3,8 @@ from create_kfold import create_kfold
 from datasets import Dataset, load_from_disk
 from transformers import AutoTokenizer
 from tqdm import tqdm
-import random
 from utils import seed_everything
 import os
-from itertools import chain
 
 def prepare_WC(kfold=5):
     seed_everything(42)

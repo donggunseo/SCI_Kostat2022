@@ -35,7 +35,9 @@ def preprocess_class():
     columns = list(class_df.columns)
     for column in columns:  
         class_df[column] = class_df[column].fillna(method = 'ffill')
-    class_df = make_class_format(class_df)
+    class_df.drop(['4th', '4th_text', '5th', '5th_text'], axis =1, inplace=True)
+    class_df.drop_duplicates(keep='first', inplace=True, ignore_index=True)
+    class_df['class_num'] = [i for i in range(len(class_df))]
     class_2nd_list = []
     for t in class_df['2nd']:
         if t[0]=='0':
@@ -65,33 +67,6 @@ def make_query_format(df):
         query_text = ' '.join(query_text)
         final_query.append(query_text)
     df['query_text'] = final_query
-    return df
-
-def make_class_format(df):
-    label_list = list(df['3rd_text'].unique())
-    final_class= []
-    for item in tqdm(label_list, desc='making class format'):
-        df_temp = df[df['3rd_text']==item]
-        detail_label= list(df_temp['5th_text'])
-        if len(detail_label)==1:
-            if detail_label[0]!=item:
-                detail_label = detail_label[0] + ' 등을 포함하는 '+ item
-            else:
-                detail_label = detail_label[0]
-        else:
-            if item in detail_label:
-                detail_label.remove(item)
-                if len(detail_label)==1:
-                    detail_label = detail_label[0] + ' 등을 포함하는 '+ item
-                else:
-                    detail_label = ', '.join(detail_label) + ' 등을 포함하는 '+ item
-            else:
-                detail_label = ', '.join(detail_label) + ' 등을 포함하는 '+ item
-        final_class.append(detail_label)
-    df.drop(['4th', '4th_text', '5th', '5th_text'], axis =1, inplace=True)
-    df.drop_duplicates(keep='first', inplace=True, ignore_index=True)
-    df['class_text'] = final_class
-    df['class_num'] = [i for i in range(len(final_class))]
     return df
 
 def combine(type='train'):
