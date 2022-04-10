@@ -1,5 +1,11 @@
 # SCI_Kostat2022
 2022 통계데이터 인공지능 활용대회 GIST SCI LAB
+## Team Members
+|서동건(Team Leader)|김주영|김주연|
+| :---: | :---: | :---: |
+|<a href="https://github.com/donggunseo" height="5" width="10" target="_blank"><img src="https://avatars.githubusercontent.com/u/43330160?v=4" width="80%" height="80%">| <a href="https://github.com/jspirit01" height="5" width="10" target="_blank"><img src="https://avatars.githubusercontent.com/u/55519927?v=4" width="80%" height="80%"> | <a href="https://github.com/superjuyeon" height="5" width="10" target="_blank"><img src="https://avatars.githubusercontent.com/u/66545973?v=4" width="80%" height="80%"> |
+|GIST EECS Bachelor student|GIST IIT Combined MS/PhD student|GIST IIT MS student|
+|Modeling, Tuning|EDA, Data cleaning|EDA, ML-based approach|
 ## 😀Directory 
 ```bash
 kostat
