@@ -1,0 +1,6 @@
+*.ipynb
+__pycache__/
+.ipynb_checkpoints/
+wandb/
+tmp_trainer/
+.DS_Store
