@@ -1,3 +1,6 @@
+## 직접 설계한 Multi-dropout model로 Sequence Classification train을 수행하는 코드
+## train_WC.py와 model부분을 제외하고는 대부분 같음
+
 from dataset import prepare_WC
 from transformers import TrainingArguments, AutoConfig, Trainer, EarlyStoppingCallback, DataCollatorWithPadding
 from datasets import concatenate_datasets

@@ -5,6 +5,12 @@ from typing import Any, Optional, Tuple, Union
 from dataclasses import dataclass, fields
 from collections import OrderedDict
 import numpy as np
+## Huggingface의 RobertaForSequenceClassification 클래스를 상속하여 forward과정에서 Multi-sample dropout을 추가함
+## 관련 기술 논문 : https://arxiv.org/abs/1905.09788
+## Trainer 클래스에도 작동할 수 있도록 Huggingface의 Github에서 코드들을 일부 가져와 사용
+## reference of Model : https://github.com/huggingface/transformers/blob/main/src/transformers/models/roberta/modeling_roberta.py
+## reference of ModelOutput : https://github.com/huggingface/transformers/blob/main/src/transformers/utils/generic.py
+
 def is_tensor(x):
     if isinstance(x, torch.Tensor):
         return True
